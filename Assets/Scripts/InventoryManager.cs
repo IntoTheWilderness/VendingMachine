@@ -31,25 +31,6 @@ public class InventoryManager : MonoBehaviour
         //TransferItemToInventory(stockedItems[0].item, 5);
     }
 
-    public void TestStocking()
-    {
-        if (completeInventory.Count > 0)
-        {
-            // Stock 10 of the first item in completeInventory
-            Item itemToStock = completeInventory[0].item;
-            int quantityToStock = 10;
-
-            TransferItemToStocked(itemToStock, quantityToStock);
-
-            Debug.Log("Stocked " + quantityToStock + " of " + itemToStock.itemName);
-        }
-        else
-        {
-            Debug.LogWarning("Complete inventory is empty. Add items to test stocking.");
-        }
-    }
-
-
     // Call this method to show the sale panel
     public void ShowRestockPanel()
     {
@@ -79,28 +60,31 @@ public class InventoryManager : MonoBehaviour
 
     public void AddItem(Item item, int quantity)
     {
-        InventoryItem foundItem = null;
-
-        foreach (InventoryItem inventoryItem in completeInventory)
+        if (quantity < 0)
         {
-            if (inventoryItem.item.itemID == item.itemID)
+            InventoryItem foundItem = null;
+
+            foreach (InventoryItem inventoryItem in completeInventory)
             {
-                foundItem = inventoryItem;
-                break;
+                if (inventoryItem.item.itemID == item.itemID)
+                {
+                    foundItem = inventoryItem;
+                    break;
+                }
             }
-        }
 
-        if (foundItem != null)
-        {
-            foundItem.quantity += quantity;
-        }
-        else
-        {
-            completeInventory.Add(new InventoryItem(item, quantity));
+            if (foundItem != null)
+            {
+                foundItem.quantity += quantity;
+            }
+            else
+            {
+                completeInventory.Add(new InventoryItem(item, quantity));
+            }
         }
     }
 
-    public void RemoveItem(int itemID, int quantity)
+        public void RemoveItem(int itemID, int quantity)
     {
         InventoryItem foundItem = null;
 
@@ -141,38 +125,42 @@ public class InventoryManager : MonoBehaviour
     public void TransferItemToStocked(Item item, int quantity)
     {
         // Check if the item is already stocked
-        InventoryItem stockedItem = stockedItems.Find(x => x.item.itemID == item.itemID);
 
-        if (stockedItem != null)
+        if (quantity > 0)
         {
-            // Calculate how many more can be stocked up to the MaxStockable limit
-            int maxStockable = item.maxStockable - stockedItem.quantity;
-            int toStock = Mathf.Min(quantity, maxStockable);
+            InventoryItem stockedItem = stockedItems.Find(x => x.item.itemID == item.itemID);
 
-            // Increase the stocked quantity
-            stockedItem.quantity = toStock;
-
-            // Remove the transferred items from the complete inventory
-            RemoveItem(item.itemID, toStock);
-
-            // Check if we need to transfer more, if quantity exceeds MaxStockable
-            if (toStock < quantity)
+            if (stockedItem != null)
             {
-                TransferItemToStocked(item, quantity - toStock);
+                // Calculate how many more can be stocked up to the MaxStockable limit
+                int maxStockable = item.maxStockable - stockedItem.quantity;
+                int toStock = Mathf.Min(quantity, maxStockable);
+
+                // Increase the stocked quantity
+                stockedItem.quantity = toStock;
+
+                // Remove the transferred items from the complete inventory
+                RemoveItem(item.itemID, toStock);
+
+                // Check if we need to transfer more, if quantity exceeds MaxStockable
+                if (toStock < quantity)
+                {
+                    TransferItemToStocked(item, quantity - toStock);
+                }
+            }
+            else
+            {
+                // If the item is not stocked, add it to the stocked items list
+                stockedItems.Add(new InventoryItem(item, quantity));
+
+                // Remove the transferred items from the complete inventory
+                RemoveItem(item.itemID, quantity);
             }
         }
-        else
-        {
-            // If the item is not stocked, add it to the stocked items list
-            stockedItems.Add(new InventoryItem(item, quantity));
-
-            // Remove the transferred items from the complete inventory
-            RemoveItem(item.itemID, quantity);
         }
-    }
 
 
-    public void TransferItemToInventory(Item item, int quantity)
+        public void TransferItemToInventory(Item item, int quantity)
     {
         // Check if the item is in the complete inventory
         InventoryItem completeItem = completeInventory.Find(x => x.item.itemID == item.itemID);
@@ -249,23 +237,24 @@ public class InventoryManager : MonoBehaviour
         UpdateButtons();
     }
 
-    public void UpdateButtons()
-    {
-        foreach (StockButton button in stockButtons)
-        {
-            InventoryItem matchingItem = stockedItems.Find(item => item.item.itemID == button.inventoryItem.item.itemID);
+    //public void UpdateButtons()
+    //{
+    //    foreach (StockButton button in stockButtons)
+    //    {
+    //        InventoryItem matchingItem = stockedItems.Find(item => item.item.itemID == button.inventoryItem.item.itemID);
             
-            if (matchingItem != null)
-            {
-                button.SetInventoryItem(matchingItem);
-            }
+    //        if (matchingItem != null)
+    //        {
+    //            button.SetInventoryItem(matchingItem);
+    //        }
 
 
-            button.UpdateButtonText(); // Call the UpdateButtonText() method on each button
-        }
-    }
+    //        button.UpdateButtonText(); // Call the UpdateButtonText() method on each button
+    //    }
+    //}
 
-    public void LoadStockButtons()
+
+    public void UpdateButtons()
     {
         for (int i = 0; i < stockButtons.Length; i++)
         {
