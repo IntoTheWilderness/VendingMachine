@@ -22,7 +22,7 @@ public class StockZone : MonoBehaviour
     }
 
 
-    private void OnTriggerEnter2D(Collider2D other)
+    public void OnTriggerEnter2D(Collider2D other)
     {
         Debug.Log("Item touched Stock Button"!);
 
@@ -43,28 +43,24 @@ public class StockZone : MonoBehaviour
 
     public void LoadFoodItem(InventoryItem newItem)
     {
-        // Check if there was a previous item on the button
-        if (inventoryItem != null)
+        if (newItem != null)
         {
-            // Return all remaining stock of the previous item to the inventory
-            inventoryManager.TransferItemToInventory(inventoryItem.item, inventoryItem.quantity);
-
-            // Remove the previous item from the stocked items
-            inventoryManager.RemoveStockedItem(inventoryItem.item.itemID, inventoryItem.quantity);
-        }
-
-        // Set the new item and update the button's visuals
-
-        int maxTransferToStocked = Mathf.Min(newItem.quantity, newItem.item.maxStockable);
+            int maxTransferToStocked = Mathf.Min(newItem.quantity, newItem.item.maxStockable);
 
         // Create a new InventoryItem instance for the stocked item
         InventoryItem stockedItem = new InventoryItem(newItem.item, maxTransferToStocked);
         inventoryManager.TransferItemToStocked(stockedItem.item, maxTransferToStocked);
-        inventoryItem = stockedItem;
+            //inventoryItem = stockedItem;
 
-        //UpdateItemImage();
-        //UpdateButtonText();
-        //inventoryMenu.GenerateItemIcons();
+        // Check if there was a previous item on the button
+
+            // Return all remaining stock of the previous item to the inventory
+            inventoryManager.TransferItemToStocked(inventoryItem.item, inventoryItem.quantity);
+
+            // Remove the previous item from the stocked items
+            //inventoryManager.RemoveStockedItem(inventoryItem.item.itemID, inventoryItem.quantity);
+        }
+
     }
 
 }

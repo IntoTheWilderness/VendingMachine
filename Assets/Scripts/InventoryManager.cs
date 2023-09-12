@@ -162,22 +162,23 @@ public class InventoryManager : MonoBehaviour
 
         public void TransferItemToInventory(Item item, int quantity)
     {
-        // Check if the item is in the complete inventory
-        InventoryItem completeItem = completeInventory.Find(x => x.item.itemID == item.itemID);
+        Debug.Log("We are attempting to transfer an item to the completeInventory");
+        //// Check if the item is in the complete inventory
+        //InventoryItem completeItem = completeInventory.Find(x => x.item.itemID == item.itemID);
 
-        if (completeItem != null)
-        {
-            // Item is in the complete inventory, increase its quantity
-            completeItem.quantity += quantity;
-        }
-        else
-        {
-            // Item is not in the complete inventory, add it to the complete inventory list
-            completeInventory.Add(new InventoryItem(item, quantity));
-        }
+        //if (completeItem != null)
+        //{
+        //    // Item is in the complete inventory, increase its quantity
+        //    completeItem.quantity += quantity;
+        //}
+        //else
+        //{
+        //    // Item is not in the complete inventory, add it to the complete inventory list
+        //    completeInventory.Add(new InventoryItem(item, quantity));
+        //}
 
-        // Remove the transferred items from the stocked items list
-        RemoveStockedItem(item.itemID, quantity);
+        //// Remove the transferred items from the stocked items list
+        //RemoveStockedItem(item.itemID, quantity);
     }
 
 

@@ -89,7 +89,7 @@ public class StockButton : MonoBehaviour
     {
         if (newItem == null)
         {
-
+            //Test
         }
         else
         {
