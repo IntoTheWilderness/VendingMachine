@@ -85,14 +85,20 @@ public class StockButton : MonoBehaviour
 
      }
 
+        public void LoadNothing()
+        {
+        buttonText.text = "";
+        buttonImage.sprite = originalSprite;
+    }
+
         public void LoadFoodItem(InventoryItem newItem)
     {
-        if (newItem == null)
-        {
-            //Test
-        }
-        else
-        {
+        //if (newItem == null)
+        //{
+        //    //Test
+        //}
+        //else
+        //{
 
             // Check if there was a previous item on the button
             //if (inventoryItem != null)
@@ -112,10 +118,10 @@ public class StockButton : MonoBehaviour
             //InventoryItem stockedItem = new InventoryItem(newItem.item, maxTransferToStocked);
             //inventoryManager.TransferItemToStocked(stockedItem.item, maxTransferToStocked);
             //inventoryItem = stockedItem;
-
+            inventoryItem = newItem;
             UpdateItemImage();
             UpdateButtonText();
-        }
+        //}
         inventoryMenu.GenerateItemIcons();
     }
 

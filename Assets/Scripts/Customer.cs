@@ -202,20 +202,20 @@ public class Customer : MonoBehaviour
         Item bestItem = null;
         float bestScore = 0;
 
-        //If they already have a Favourite Item that they are showing in the machine, they take it automatically
-        //If Not, we have to calculate everything else
-
         // Assuming you have an InventoryManager reference in your GameManager
         InventoryManager inventoryManager = gameManager.GetInventoryManager();
 
         foreach (Item item in inventoryManager.GetAvailableItems())
         {
-            float itemScore = EvaluateItem(item);
-
-            if (itemScore > bestScore)
+            if (item != null)
             {
-                bestScore = itemScore;
-                bestItem = item;
+                float itemScore = EvaluateItem(item);
+
+                if (itemScore > bestScore)
+                {
+                    bestScore = itemScore;
+                    bestItem = item;
+                }
             }
         }
 
@@ -223,7 +223,6 @@ public class Customer : MonoBehaviour
         {
             currentDesire = bestItem;
             MakePurchase(currentDesire);
-            //Debug.Log("Customer chose " + bestItem.itemName);
         }
         else
         {

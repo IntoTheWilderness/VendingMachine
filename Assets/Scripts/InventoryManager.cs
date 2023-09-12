@@ -17,10 +17,11 @@ public class InventoryManager : MonoBehaviour
 
     public GameObject restockPanel;
     public InventoryMenu inventoryMenu;
-    public List<InventoryItem> stockedItems = new List<InventoryItem>();
+    public InventoryItem[] stockedItems = new InventoryItem[6];
     public List<InventoryItem> completeInventory = new List<InventoryItem>();
     //public List<StockButton> stockButtons = new List<StockButton>();
     public StockButton[] stockButtons = new StockButton[6];
+    private int numStockedItems = 0;
 
 
 
@@ -29,12 +30,14 @@ public class InventoryManager : MonoBehaviour
     {
         //TestStocking();
         //TransferItemToInventory(stockedItems[0].item, 5);
+        UpdateButtons();
     }
 
     // Call this method to show the sale panel
     public void ShowRestockPanel()
     {
         restockPanel.SetActive(true);
+        UpdateButtons();
 
         //Should refresh the fields after it gets shown
         //But this is currently not called...
@@ -122,92 +125,155 @@ public class InventoryManager : MonoBehaviour
     }
 
 
+    //This isn't working. Only loads in the 6th place.
+    //Also dones't return items that were in that spot if you replace them.
+
     public void TransferItemToStocked(Item item, int quantity)
     {
-        // Check if the item is already stocked
-
         if (quantity > 0)
         {
-            InventoryItem stockedItem = stockedItems.Find(x => x.item.itemID == item.itemID);
+            int index = 0;
+            bool emptySpotFound = false;
 
-            if (stockedItem != null)
+            // Find the first empty spot in the stockedItems array
+            for (int i = 0; i < stockedItems.Length; i++)
             {
-                // Calculate how many more can be stocked up to the MaxStockable limit
-                int maxStockable = item.maxStockable - stockedItem.quantity;
-                int toStock = Mathf.Min(quantity, maxStockable);
-
-                // Increase the stocked quantity
-                stockedItem.quantity = toStock;
-
-                // Remove the transferred items from the complete inventory
-                RemoveItem(item.itemID, toStock);
-
-                // Check if we need to transfer more, if quantity exceeds MaxStockable
-                if (toStock < quantity)
+                if (IsInventoryItemEmpty(stockedItems[i]))
                 {
-                    TransferItemToStocked(item, quantity - toStock);
+                    index = i;
+                    emptySpotFound = true;
+                    break;
                 }
+            }
+
+            // If there is no empty spot, use the 6th spot
+            if (!emptySpotFound)
+            {
+                index = 5;
+                TransferItemToInventory(stockedItems[5].item, stockedItems[5].quantity);
+            }
+
+            stockedItems[index] = new InventoryItem(item, quantity);
+            numStockedItems = Mathf.Min(numStockedItems + 1, 6);
+            RemoveItem(item.itemID, quantity);
+        }
+        inventoryMenu.GenerateItemIcons();
+        UpdateButtons();
+    }
+
+
+
+
+    public void TransferItemToInventory(Item item, int quantity)
+    {
+        // Find the stocked item with the given itemID
+        int stockedItemIndex = -1;
+        for (int i = 0; i < stockedItems.Length; i++)
+        {
+            if (stockedItems[i] != null && stockedItems[i].item.itemID == item.itemID)
+            {
+                stockedItemIndex = i;
+                break;
+            }
+        }
+
+        if (stockedItemIndex != -1)
+        {
+            // Remove the specified quantity from the stocked item
+            stockedItems[stockedItemIndex].quantity -= quantity;
+
+            // If the stocked item's quantity is less than or equal to 0, set the array element to null
+            if (stockedItems[stockedItemIndex].quantity <= 0)
+            {
+                stockedItems[stockedItemIndex] = null;
+            }
+
+            // Add the item and quantity to the complete inventory
+            InventoryItem completeItem = completeInventory.Find(x => x.item.itemID == item.itemID);
+            if (completeItem != null)
+            {
+                completeItem.quantity += quantity;
             }
             else
             {
-                // If the item is not stocked, add it to the stocked items list
-                stockedItems.Add(new InventoryItem(item, quantity));
-
-                // Remove the transferred items from the complete inventory
-                RemoveItem(item.itemID, quantity);
+                completeInventory.Add(new InventoryItem(item, quantity));
             }
         }
-        }
-
-
-        public void TransferItemToInventory(Item item, int quantity)
-    {
-        Debug.Log("We are attempting to transfer an item to the completeInventory");
-        //// Check if the item is in the complete inventory
-        //InventoryItem completeItem = completeInventory.Find(x => x.item.itemID == item.itemID);
-
-        //if (completeItem != null)
-        //{
-        //    // Item is in the complete inventory, increase its quantity
-        //    completeItem.quantity += quantity;
-        //}
-        //else
-        //{
-        //    // Item is not in the complete inventory, add it to the complete inventory list
-        //    completeInventory.Add(new InventoryItem(item, quantity));
-        //}
-
-        //// Remove the transferred items from the stocked items list
-        //RemoveStockedItem(item.itemID, quantity);
-    }
-
-
-
-
-
-    public void RemoveStockedItem(int itemID, int quantity)
-    {
-        // Check if the item is stocked
-        InventoryItem stockedItem = stockedItems.Find(x => x.item.itemID == itemID);
-
-        if (stockedItem != null)
+        else
         {
-            // Item is stocked, decrease its quantity
-            stockedItem.quantity -= quantity;
-            //AddItem(stockedItem.item, quantity);
+            Debug.LogWarning("Item not found in stocked items.");
+        }
+        UpdateButtons();
 
-            // Remove from stocked items if the quantity reaches 0 or less
-            if (stockedItem.quantity <= 0)
+
+    //if (completeItem != null)
+    //{
+    //    // Item is in the complete inventory, increase its quantity
+    //    completeItem.quantity += quantity;
+    //}
+    //else
+    //{
+    //    // Item is not in the complete inventory, add it to the complete inventory list
+    //    completeInventory.Add(new InventoryItem(item, quantity));
+    //}
+
+    //// Remove the transferred items from the stocked items list
+    //RemoveStockedItem(item.itemID, quantity);
+    }
+
+
+public void RemoveStockedItem(int itemID, int quantity)
+    {
+        int index = -1;
+
+        // Find the stocked item with the given itemID
+        for (int i = 0; i < stockedItems.Length; i++)
+        {
+            if (stockedItems[i] != null && stockedItems[i].item.itemID == itemID)
             {
-                stockedItems.Remove(stockedItem);
+                index = i;
+                break;
             }
         }
+
+        if (index != -1)
+        {
+            // Decrease the stocked item's quantity
+            stockedItems[index].quantity -= quantity;
+
+            // If the quantity reaches 0 or less, remove the item and shift the remaining items
+            if (stockedItems[index].quantity <= 0)
+            {
+                for (int i = index; i < stockedItems.Length - 1; i++)
+                {
+                    stockedItems[i] = stockedItems[i + 1];
+                }
+                stockedItems[stockedItems.Length - 1] = null;
+                numStockedItems = Mathf.Max(numStockedItems - 1, 0);
+            }
+        }
+
+        UpdateButtons();
     }
+
+    private bool IsInventoryItemEmpty(InventoryItem inventoryItem)
+    {
+        return inventoryItem == null || inventoryItem.item == null || inventoryItem.quantity == 0;
+    }
+
 
     public void MakePurchase(Item item, int quantity)
     {
         // Check if the item is in the stocked items
-        InventoryItem stockedItem = stockedItems.Find(x => x.item.itemID == item.itemID);
+        InventoryItem stockedItem = null;
+        for (int i = 0; i < stockedItems.Length; i++)
+        {
+            if (stockedItems[i] != null && stockedItems[i].item.itemID == item.itemID)
+            {
+                stockedItem = stockedItems[i];
+                break;
+            }
+        }
 
         if (stockedItem != null)
         {
@@ -243,7 +309,7 @@ public class InventoryManager : MonoBehaviour
     //    foreach (StockButton button in stockButtons)
     //    {
     //        InventoryItem matchingItem = stockedItems.Find(item => item.item.itemID == button.inventoryItem.item.itemID);
-            
+
     //        if (matchingItem != null)
     //        {
     //            button.SetInventoryItem(matchingItem);
@@ -259,18 +325,21 @@ public class InventoryManager : MonoBehaviour
     {
         for (int i = 0; i < stockButtons.Length; i++)
         {
-            if (i < stockedItems.Count)
+            if (i < stockedItems.Length && stockedItems[i] != null)
             {
                 // Assign the Inventory Item to the Stock Button
+                Debug.Log("Loaded an inventory item into a button!");
                 stockButtons[i].LoadFoodItem(stockedItems[i]);
             }
             else
             {
-                // If there are no more items to assign, clear the button
-                stockButtons[i].LoadFoodItem(null);
+                // If there are no more items to assign or the item is null, clear the button
+                stockButtons[i].LoadNothing();
             }
         }
     }
+
+
 
 
 

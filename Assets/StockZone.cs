@@ -22,24 +22,24 @@ public class StockZone : MonoBehaviour
     }
 
 
+
+    //When a FoodTile touches the stock zone, it loads the item's max grabbable amount and puts it into the first available spot stockedInventory.
+    //If it is full, the zone will do nothing.
+
     public void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log("Item touched Stock Button"!);
+        Debug.Log("Item touched Stock Zone"!);
 
         DraggableItem2D loadedItem = other.GetComponent<DraggableItem2D>();
 
-        //if (!other.GetComponent<DraggableItem2D>().IsInteracting)
-        {
             LoadFoodItem(loadedItem.item);
-        }
-
-        //StockButton droppedItem = other.GetComponent<StockButton>();
-
-
-
-        //    LoadFoodItem(loadedItem.item);
+        
 
     }
+
+    //*Note to self, this load is only happening when the customer tries to make  a purchase
+    //No, incorrect, it's not immediately updating the tiles after you load a food
+    //When a player tries to buy a food, it resets it, but placing it in the zone doesn't regenerate the tiles.
 
     public void LoadFoodItem(InventoryItem newItem)
     {
@@ -55,7 +55,7 @@ public class StockZone : MonoBehaviour
         // Check if there was a previous item on the button
 
             // Return all remaining stock of the previous item to the inventory
-            inventoryManager.TransferItemToStocked(inventoryItem.item, inventoryItem.quantity);
+            //inventoryManager.TransferItemToStocked(inventoryItem.item, inventoryItem.quantity);
 
             // Remove the previous item from the stocked items
             //inventoryManager.RemoveStockedItem(inventoryItem.item.itemID, inventoryItem.quantity);
